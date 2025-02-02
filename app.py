@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 import sys, os
-sys.path.append(os.path.dirname((__file__)) + "/nflFiles/")
-from nbaGameLines import *
+sys.path.append(os.path.dirname((__file__)) + "/nbaFiles/")
+from nbaGamelines import *
 from nbaGetData import *
-from nbaStats import *
 
 
 app = FastAPI()
