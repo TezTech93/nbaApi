@@ -18,7 +18,7 @@ app.add_middleware(
 
 @app.get("/nba/gamelines")
 def get_lines():
-    return {"Data":nba_game_lines}
+    return {"Gamelines":nba_game_lines}
 
 @app.get("/nba/{team}/{year}")
 def get_team_stats(team,year):
