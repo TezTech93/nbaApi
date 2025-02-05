@@ -22,8 +22,8 @@ def get_lines():
 
 @app.get("/nba/{team}/{year}")
 def get_team_stats(team,year):
-    results = []
-    #return a list of game data for specified year
+    result = get_team_stats(team,year)
+    return {'Team_Stats':result}
 
 @app.get("/nba/{player}/")
 def get_player_stats(range):
