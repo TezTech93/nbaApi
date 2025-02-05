@@ -24,7 +24,7 @@ data = {
 
 
 def get_team_stats(team,year):
-    url = f'https://www.basketball-reference.com/teams/{team}/{year}/gamelog'
+    url = f'https://www.basketball-reference.com/teams/{team}/{year}/gamelog/'
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     rows = soup.find_all('tr')
