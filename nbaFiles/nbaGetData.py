@@ -82,6 +82,7 @@ def get_team_stats(team,year):
             data["OBLK"] = row[20 + 16]
             data["OTOV"] = row[21 + 16]
             data["OPF"] = row[22 + 16]
+            print(data)
             stat_dict_list.append(data.copy())
         return stat_dict_list
 
