@@ -86,7 +86,7 @@ def get_team_stats(team,year):
             data["OPF"] = row[22 + 16]
             print(data)
             stat_dict_list.append(data.copy())
-        return stat_dict_list
+        return stats
 
 
 def get_player_stats(player,year):
