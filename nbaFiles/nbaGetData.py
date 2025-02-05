@@ -42,6 +42,8 @@ def get_team_stats(team,year):
             stats.append(stat_row)
             stat_row = []
 
+        print(stats)
+
         for row in stats:
             data["Rk"] = row[0]
             data["G"] = row[1]
