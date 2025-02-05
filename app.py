@@ -21,9 +21,14 @@ def get_lines():
     return {"Gamelines":nba_game_lines}
 
 @app.get("/nba/{team}/{year}")
-def get_team_stats(team,year):
-    result = get_team_stats(team,year)
-    return {'Team_Stats':result}
+def get_stats(team,year):
+    result = []
+    try:
+        results = get_team_stats(team,year)
+        return {"Team_Stats":results}
+    except:
+        data = 'wait'
+        return {"Data":data}
 
 @app.get("/nba/{player}/")
 def get_player_stats(range):

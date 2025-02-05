@@ -86,8 +86,24 @@ def get_team_stats(team,year):
         return stat_dict_list
 
 
-def get_player_stats(player):
-    pass
+def get_player_stats(player,year):
+    fname_lname = player.split(' ')
+    fname = fname_lname[0]
+    lname = fname_lname[1]
+    letter = lname[0].lower()
+    print(letter)
+    player_id = lname[0:5] + fname[0:2] +'01'
+    player_id = player_id.lower()
+    print(player_id)
+    #url = 'https://www.basketball-reference.com/players/{letter}/{player_id}/gamelog/{year}'
+    #response = requests.get(url)
+    #soup = BeautifulSoup(response.text, 'html.parser')
+    #rows = soup.find_all('tr')
+
+    #for row in rows:
+        #print(row)
 
 def get_coach_stats(coach):
     pass
+
+get_player_stats('Dell Curry','2024')

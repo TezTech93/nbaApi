@@ -36,7 +36,6 @@ def current_gamelines(url):
                     gameline = []
                     all_gamelines.append(my_dict)
     nba_game_lines = all_gamelines
-    print(all_gamelines)
     return nba_game_lines
 
 nba_game_lines = current_gamelines(url3)
