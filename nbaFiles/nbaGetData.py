@@ -27,66 +27,63 @@ def get_team_stats(team,year):
     url = f'https://www.basketball-reference.com/teams/{team}/{year}/gamelog/'
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    rows = soup.find_all('tr')
-    
-    stats = []
-    stat_row = []
-    stat_dict_list = []
+    body = soup.find('tbody')
+    rows = body.find_all('tr')  
+
+    all_data = []
     for row in rows:
-        #map to stat_row
-        for cell in row.find_all('td'):
-            stat_row.append(cell.text)
+        cells = row.find_all('td')
+        if not cells:
+            continue
         
-        #add stat_row to stats
-        if stat_row:
-            stats.append(stat_row)
-            stat_row = []
+        data = {
+            "Rk": cells[0].text if len(cells) > 0 else None,
+            "G": cells[1].text if len(cells) > 1 else None,
+            "Date": cells[2].text if len(cells) > 2 else None,
+            "Opp": cells[3].text if len(cells) > 3 else None,
+            "W/L": cells[4].text if len(cells) > 4 else None,
+            "Tm": cells[5].text if len(cells) > 5 else None,
+            "Opp_Pts": cells[6].text if len(cells) > 6 else None,
+            "FG": cells[7].text if len(cells) > 7 else None,
+            "FGA": cells[8].text if len(cells) > 8 else None,
+            "FG%": cells[9].text if len(cells) > 9 else None,
+            "3P": cells[10].text if len(cells) > 10 else None,
+            "3PA": cells[11].text if len(cells) > 11 else None,
+            "3P%": cells[12].text if len(cells) > 12 else None,
+            "FT": cells[13].text if len(cells) > 13 else None,
+            "FTA": cells[14].text if len(cells) > 14 else None,
+            "FT%": cells[15].text if len(cells) > 15 else None,
+            "ORB": cells[16].text if len(cells) > 16 else None,
+            "TRB": cells[17].text if len(cells) > 17 else None,
+            "AST": cells[18].text if len(cells) > 18 else None,
+            "STL": cells[19].text if len(cells) > 19 else None,
+            "BLK": cells[20].text if len(cells) > 20 else None,
+            "TOV": cells[21].text if len(cells) > 21 else None,
+            "PF": cells[22].text if len(cells) > 22 else None,
+            "OFG": cells[23].text if len(cells) > 23 else None,
+            "OFGA": cells[24].text if len(cells) > 24 else None,
+            "OFG%": cells[25].text if len(cells) > 25 else None,
+            "O3P": cells[26].text if len(cells) > 26 else None,
+            "O3PA": cells[27].text if len(cells) > 27 else None,
+            "O3P%": cells[28].text if len(cells) > 28 else None,
+            "OFT": cells[29].text if len(cells) > 29 else None,
+            "OFTA": cells[30].text if len(cells) > 30 else None,
+            "OFT%": cells[31].text if len(cells) > 31 else None,
+            "OORB": cells[32].text if len(cells) > 32 else None,
+            "OTRB": cells[33].text if len(cells) > 33 else None,
+            "OAST": cells[34].text if len(cells) > 34 else None,
+            "OSTL": cells[35].text if len(cells) > 35 else None,
+            "OBLK": cells[36].text if len(cells) > 36 else None,
+            "OTOV": cells[37].text if len(cells) > 37 else None,
+            "OPF": cells[38].text if len(cells) > 38 else None,
+        }
+        
+        # Append the dictionary to the list
+        all_data.append(data)
 
-        print(stats)
+# Now 'all_data' contains a list of dictionaries, each representing a row of data
+    print(all_data)
 
-        for row in stats:
-            data["Rk"] = row[0]
-            data["G"] = row[1]
-            data["Date"] = row[2]
-            data["Opp"] = row[3]
-            data["W/L"] = row[4]
-            data["Tm"] = row[5]
-            data["Opp"] = row[6]
-            data["FG"] = row[7]
-            data["FGA"] = row[8]
-            data["FG%"] = row[9]
-            data["3P"] = row[10]
-            data["3PA"] = row[11]
-            data["3P%"] = row[12]
-            data["FT"] = row[13]
-            data["FTA"] = row[14]
-            data["FT%"] = row[15]
-            data["ORB"] = row[16]
-            data["TRB"] = row[17]
-            data["AST"] = row[18]
-            data["STL"] = row[19]
-            data["BLK"] = row[20]
-            data["TOV"] = row[21]
-            data["PF"] = row[22]
-            data["OFG"] = row[7 + 16]
-            data["OFGA"] = row[8 + 16]
-            data["OFG%"] = row[9 + 16]
-            data["O3P"] = row[10 + 16]
-            data["O3PA"] = row[11 + 16]
-            data["O3P%"] = row[12 + 16]
-            data["OFT"] = row[13 + 16]
-            data["OFTA"] = row[14 + 16]
-            data["OFT%"] = row[15 + 16]
-            data["OORB"] = row[16 + 16]
-            data["OTRB"] = row[17 + 16]
-            data["OAST"] = row[18 + 16]
-            data["OSTL"] = row[19 + 16]
-            data["OBLK"] = row[20 + 16]
-            data["OTOV"] = row[21 + 16]
-            data["OPF"] = row[22 + 16]
-            print(data)
-            stat_dict_list.append(data.copy())
-        return stats
 
 
 def get_player_stats(player,year):
@@ -110,3 +107,4 @@ def get_coach_stats(coach):
     pass
 
 get_player_stats('Dell Curry','2024')
+get_team_stats("DET",'2025')
