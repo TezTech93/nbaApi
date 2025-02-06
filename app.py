@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware 
 import sys, os
 sys.path.append(os.path.dirname((__file__)) + "/nbaFiles/")
@@ -22,13 +22,13 @@ def get_lines():
 
 @app.get("/nba/{team}/{year}")
 def get_stats(team,year):
-    result = []
     try:
-        results = get_team_stats(team,year)
-        return {"Team_Stats":results}
-    except:
-        data = 'wait'
-        return {"Data":data}
+        results = get_team_stats(team, year)
+        if not results:
+            raise HTTPException(status_code=404, detail="No stats found for the given team and year")
+        return {"Team_Stats": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/nba/{player}/")
 def get_player_stats(range):
