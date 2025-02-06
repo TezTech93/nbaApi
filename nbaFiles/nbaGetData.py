@@ -77,12 +77,15 @@ def get_team_stats(team,year):
             "OTOV": cells[37].text if len(cells) > 37 else None,
             "OPF": cells[38].text if len(cells) > 38 else None,
         }
-        
-        # Append the dictionary to the list
         all_data.append(data)
 
-# Now 'all_data' contains a list of dictionaries, each representing a row of data
     print(all_data)
+    print(len(all_data))
+    print(type(all_data))
+    try:
+        return all_data
+    except Exception as e:
+        return e
 
 
 
