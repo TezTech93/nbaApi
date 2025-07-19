@@ -4,38 +4,49 @@ from bs4 import BeautifulSoup
 
 url3 = 'https://sportsbook.draftkings.com/leagues/basketball/nba'
 
-def current_gamelines(url):
-    a = 0
-    all_gamelines = []
+def show_url_td(url):
     content = requests.get(url)
     soup = BeautifulSoup(content.content, 'html.parser')
     tr_data = soup.find_all('tr')
-    gameline = []
+    all_teams = soup.select('.event-cell__name-text')
+    all_spreads_and_overUnder = soup.select('.sportsbook-outcome-cell__line')
+    all_moneylines = soup.select('.sportsbook-odds.american.no-margin.default-color')
 
-    for data in tr_data:
-        for i in data:
-            a += 1
-            if a > 4:
-                gameline.append(i.text)
-                if len(gameline) == 8:
-                    hSpread = gameline[1][:-4]
-                    hSpreadOdds = gameline[1][-4:]
-                    aSpread = gameline[5][:-4]
-                    aSpreadOdds = gameline[5][-4:]
-                    ovSpread = gameline[2][:-4].replace('\xa0', '')
-                    ovSpreadOdds = gameline[2][-4:]
-                    unSpread = gameline[6][:-4].replace('\xa0', '')
-                    unSpreadOdds = gameline[6][-4:]
-                    my_dict = {
-                    'home': gameline[0],'away':gameline[4],
-                    'home_ml':gameline[3],'away_ml':gameline[7], 
-                    'home_spread':hSpread,'away_spread':aSpread,
-                    'home_spread_odds': hSpreadOdds, 'away_spread_odds': aSpreadOdds,
-                    'over':ovSpread,'under':unSpread,
-                    'over_odds': ovSpreadOdds, 'under_odds': unSpreadOdds}
-                    gameline = []
-                    all_gamelines.append(my_dict)
-    nba_game_lines = all_gamelines
-    return nba_game_lines
+    all_gamelines = [] #return
 
-nba_game_lines = current_gamelines(url3)
+    spreads = []
+    overUnders = []
+    num = 0
+
+    defOdds = '-110'
+
+    for spread in all_spreads_and_overUnder:
+        if spread.text[0] == '+' or spread.text[0] == '-':
+            spreads.append(spread.text)
+        else:
+            overUnders.append(spread.text)
+        num += 1
+    num = 0
+
+    for row in range(200):
+        try:
+            if num % 2 == 1:
+                my_dict = {
+                            'home': all_teams[num].text, 'away': all_teams[num - 1].text,
+                            'home_ml': all_moneylines[num].text, 'away_ml': all_moneylines[num - 1].text, 
+                            'home_spread': spreads[num], 'away_spread': spreads[num - 1],
+                            'home_spread_odds': defOdds, 'away_spread_odds': defOdds,
+                            'over': f'O {overUnders[num]}', 'under': f'U {overUnders[num - 1]}',
+                            'over_odds': defOdds, 'under_odds': defOdds
+                        }
+                all_gamelines.append(my_dict)
+        except:
+            pass
+        num += 1
+    if len(all_gamelines) >= 0:
+        print('out of season')
+    for gl in all_gamelines:
+        print(gl)
+    return all_gamelines
+
+nba_game_lines = show_url_td(url3)
