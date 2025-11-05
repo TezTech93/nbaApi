@@ -116,4 +116,4 @@ def get_coach_stats(coach):
     pass
 
 # Example usage
-team_stats = get_team_stats("DET", "2025")
+det_stats = get_team_stats("DET", "2025")
