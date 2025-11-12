@@ -10,6 +10,7 @@ from time import sleep
 from pprint import pprint
 import logging
 import sqlite3
+from enum import Enum
 
 now = dt.datetime.now()
 today = now.date()
@@ -56,6 +57,64 @@ SPORTSBOOKS = {
         'priority': 2
     }
 }
+
+class NBASeasonType(Enum):
+    OFF_SEASON = "off_season"
+    PRESEASON = "preseason"
+    REG_SEASON = "reg_season"
+    PLAYOFFS = "playoffs"
+
+# NBA Current Season 2025-2026
+NBA_CURRENT_SEASON = {
+    "season_start": date(2025, 10, 21),
+    "season_end": date(2026, 6, 18),
+    "preseason_start": date(2025, 9, 30),
+    "preseason_end": date(2025, 10, 20),
+    "reg_season_start": date(2025, 10, 21),
+    "reg_season_end": date(2026, 4, 15),
+    "playoffs_start": date(2026, 4, 16),
+    "playoffs_end": date(2026, 6, 18),
+    "off_season_start": date(2026, 6, 19),
+    "off_season_end": date(2025, 9, 29)
+}
+
+# NBA Season type date ranges
+NBA_SEASON_RANGES = {
+    NBASeasonType.OFF_SEASON: {
+        "start": NBA_CURRENT_SEASON["off_season_start"],
+        "end": NBA_CURRENT_SEASON["off_season_end"]
+    },
+    NBASeasonType.PRESEASON: {
+        "start": NBA_CURRENT_SEASON["preseason_start"],
+        "end": NBA_CURRENT_SEASON["preseason_end"]
+    },
+    NBASeasonType.REG_SEASON: {
+        "start": NBA_CURRENT_SEASON["reg_season_start"],
+        "end": NBA_CURRENT_SEASON["reg_season_end"]
+    },
+    NBASeasonType.PLAYOFFS: {
+        "start": NBA_CURRENT_SEASON["playoffs_start"],
+        "end": NBA_CURRENT_SEASON["playoffs_end"]
+    }
+}
+
+def get_nba_season_type(target_date: date = None) -> NBASeasonType:
+    if target_date is None:
+        target_date = date.today()
+    
+    for season_type, date_range in NBA_SEASON_RANGES.items():
+        if date_range["start"] <= target_date <= date_range["end"]:
+            return season_type
+    
+    # Handle off-season wrap-around
+    off_season_range = NBA_SEASON_RANGES[NBASeasonType.OFF_SEASON]
+    if (target_date >= off_season_range["start"] or 
+        target_date <= off_season_range["end"]):
+        return NBASeasonType.OFF_SEASON
+    
+    return NBASeasonType.OFF_SEASON
+
+cur_season = get_nba_season_type()
 
 class GamelineManager:
     def __init__(self, db_file=DB_FILE):
