@@ -98,7 +98,7 @@ NBA_SEASON_RANGES = {
     }
 }
 
-def get_nba_season_type(target_date: date = None) -> NBASeasonType:
+def get_nba_season_type(target_date: dt.date = None) -> NBASeasonType:
     if target_date is None:
         target_date = dt.date.today()
     
