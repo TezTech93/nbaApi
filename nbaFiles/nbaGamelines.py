@@ -66,16 +66,16 @@ class NBASeasonType(Enum):
 
 # NBA Current Season 2025-2026
 NBA_CURRENT_SEASON = {
-    "season_start": date(2025, 10, 21),
-    "season_end": date(2026, 6, 18),
-    "preseason_start": date(2025, 9, 30),
-    "preseason_end": date(2025, 10, 20),
-    "reg_season_start": date(2025, 10, 21),
-    "reg_season_end": date(2026, 4, 15),
-    "playoffs_start": date(2026, 4, 16),
-    "playoffs_end": date(2026, 6, 18),
-    "off_season_start": date(2026, 6, 19),
-    "off_season_end": date(2025, 9, 29)
+    "season_start": dt.date(2025, 10, 21),
+    "season_end": dt.date(2026, 6, 18),
+    "preseason_start": dt.date(2025, 9, 30),
+    "preseason_end": dt.date(2025, 10, 20),
+    "reg_season_start": dt.date(2025, 10, 21),
+    "reg_season_end": dt.date(2026, 4, 15),
+    "playoffs_start": dt.date(2026, 4, 16),
+    "playoffs_end": dt.date(2026, 6, 18),
+    "off_season_start": dt.date(2026, 6, 19),
+    "off_season_end": dt.date(2025, 9, 29)
 }
 
 # NBA Season type date ranges
@@ -100,7 +100,7 @@ NBA_SEASON_RANGES = {
 
 def get_nba_season_type(target_date: date = None) -> NBASeasonType:
     if target_date is None:
-        target_date = date.today()
+        target_date = dt.date.today()
     
     for season_type, date_range in NBA_SEASON_RANGES.items():
         if date_range["start"] <= target_date <= date_range["end"]:
