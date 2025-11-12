@@ -27,6 +27,10 @@ NBA_TEAMS = [
 # Years for dropdown
 YEARS = [str(year) for year in range(2020, 2025)]
 
+@app.get("nba/current-season"):
+def get_current_season():
+    return {'Current_Season':cur_season}
+
 @app.get("/nba/gamelines")
 def get_lines():
     return {"Gamelines": nba_game_lines}
