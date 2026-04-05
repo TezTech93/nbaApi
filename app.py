@@ -58,7 +58,51 @@ def manual_input_form():
     <body>
         <h2>NBA Manual Gameline Input</h2>
         <form action="/nba/gamelines/manual" method="post">
-            <!-- ... your existing form HTML ... -->
+            <div class="form-group gameline_card">
+                <label for="source">Source:</label>
+                <select id="source" name="source" required>
+                    <option value="manual">Manual</option>
+                    <option value="draftkings">DraftKings</option>
+                    <option value="espn_bets">ESPN Bets</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="home_team">Home Team:</label>
+                <input type="text" id="home_team" name="home_team" required>
+            </div>
+            <div class="form-group">
+                <label for="away_team">Away Team:</label>
+                <input type="text" id="away_team" name="away_team" required>
+            </div>
+            <div class="form-group">
+                <label for="game_day">Game Date:</label>
+                <input type="date" id="game_day" name="game_day" required>
+            </div>
+            <div class="form-group">
+                <label for="start_time">Start Time:</label>
+                <input type="time" id="start_time" name="start_time">
+            </div>
+            <div class="form-group">
+                <label for="home_ml">Home ML:</label>
+                <input type="number" id="home_ml" name="home_ml">
+            </div>
+            <div class="form-group">
+                <label for="away_ml">Away ML:</label>
+                <input type="number" id="away_ml" name="away_ml">
+            </div>
+            <div class="form-group">
+                <label for="home_spread">Home Spread:</label>
+                <input type="number" step="0.1" id="home_spread" name="home_spread">
+            </div>
+            <div class="form-group">
+                <label for="away_spread">Away Spread:</label>
+                <input type="number" step="0.1" id="away_spread" name="away_spread">
+            </div>
+            <div class="form-group">
+                <label for="over_under">Over/Under:</label>
+                <input type="number" step="0.1" id="over_under" name="over_under">
+            </div>
+            <button type="submit">Submit Gameline</button>
         </form>
     </body>
     </html>
