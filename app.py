@@ -1,6 +1,10 @@
 from fastapi import FastAPI, HTTPException, Request, Form
 from fastapi.middleware.cors import CORSMiddleware 
 from fastapi.responses import HTMLResponse
+from fastapi import File, UploadFile
+import json
+from pydantic import BaseModel
+from typing import List, Optional
 import sys, os
 
 sys.path.append(os.path.dirname(__file__) + "/nbaFiles/")
@@ -27,9 +31,30 @@ NBA_TEAMS = [
 # Years for dropdown
 YEARS = [str(year) for year in range(2020, 2025)]
 
+# ---------- Pydantic models for dump route ----------
+class NBAGameline(BaseModel):
+    home: str
+    away: str
+    game_day: str
+    start_time: Optional[str] = None
+    home_ml: Optional[int] = None
+    away_ml: Optional[int] = None
+    home_spread: Optional[float] = None
+    away_spread: Optional[float] = None
+    home_spread_odds: Optional[int] = None
+    away_spread_odds: Optional[int] = None
+    over_under: Optional[float] = None
+    over_odds: Optional[int] = None
+    under_odds: Optional[int] = None
+
+class GamelineDump(BaseModel):
+    source: str  # e.g., "manual", "bulk_upload"
+    gamelines: List[NBAGameline]
+
+# ---------- Existing endpoints ----------
 @app.get("/nba/current-season")
 def get_current_season():
-    return {'Current_Season':cur_season}
+    return {'Current_Season': cur_season}
 
 @app.get("/nba/gamelines")
 def get_lines():
@@ -141,8 +166,12 @@ async def submit_manual_gameline(
             'away_spread_odds': away_spread_odds,
             'over_under': over_under,
             'over_odds': over_odds,
-            'under_odds': under_odds
+            'under_odds': under_odds,
+            'source': source
         }
+        
+        # Append to global list (if nba_game_lines is mutable)
+        nba_game_lines.append(game_data)
         
         return {
             "status": "success",
@@ -153,6 +182,39 @@ async def submit_manual_gameline(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error submitting NBA gameline: {str(e)}")
 
+# ---------- NEW DUMP ROUTES ----------
+@app.post("/nba/gamelines/dump")
+async def dump_gamelines(payload: GamelineDump):
+    """
+    Accept a JSON object containing multiple NBA gamelines and add them to the nba_game_lines list.
+    """
+    try:
+        added_count = 0
+        for game in payload.gamelines:
+            game_dict = game.dict()
+            game_dict['source'] = payload.source
+            nba_game_lines.append(game_dict)
+            added_count += 1
+        
+        return {
+            "status": "success",
+            "message": f"Added {added_count} gameline(s) from source '{payload.source}'",
+            "total_gamelines": len(nba_game_lines)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error dumping gamelines: {str(e)}")
+
+@app.get("/nba/gamelines/dump")
+async def get_dumped_gamelines():
+    """
+    Retrieve all gamelines currently in memory (including those added via dump or manual).
+    """
+    return {
+        "total": len(nba_game_lines),
+        "gamelines": nba_game_lines
+    }
+
+# ---------- Existing stats endpoints ----------
 @app.get("/nba/team-select", response_class=HTMLResponse)
 def team_select_form():
     """Serve HTML form for team stats with dropdowns"""
@@ -217,24 +279,24 @@ def team_select_form():
 @app.get("/nba/team-stats")
 def get_team_stats_via_form(team: str, year: str):
     """Get team stats via form parameters"""
-    return get_nba_team_stats(team, year)  # Call the renamed function
+    return get_nba_team_stats(team, year)
 
 @app.get("/nba/{team}/{year}")
-def get_nba_team_stats(team: str, year: str):  # Renamed endpoint function
+def get_nba_team_stats(team: str, year: str):
     """Original team stats endpoint"""
     try:
-        print(f"Fetching stats for {team} in {year}")  # Debug print
-        results = nba_get_team_stats(team, year)  # Call the imported function
-        print(f"Results: {results}")  # Debug print
+        print(f"Fetching stats for {team} in {year}")
+        results = nba_get_team_stats(team, year)
+        print(f"Results: {results}")
         
         if not results or not results.get("Data"):
             raise HTTPException(status_code=404, detail="No stats found for the given team and year")
         
-        return {"Team_Stats": results["Data"]}  # Return the data directly
+        return {"Team_Stats": results["Data"]}
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error in endpoint: {e}")  # Debug print
+        print(f"Error in endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/nba/player-stats", response_class=HTMLResponse)
@@ -260,6 +322,160 @@ def player_select_form():
     </html>
     """
     return HTMLResponse(content=html_content)
+
+@app.get("/nba/gamelines/dump/form", response_class=HTMLResponse)
+async def dump_gamelines_form():
+    """HTML form to input JSON gamelines for bulk upload"""
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>NBA Bulk Gameline Dump</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .container { max-width: 800px; margin: auto; }
+            textarea { width: 100%; height: 300px; font-family: monospace; }
+            input[type="file"] { margin: 10px 0; }
+            button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+            pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+            .status { margin-top: 20px; padding: 10px; border-radius: 4px; }
+            .success { background: #d4edda; color: #155724; }
+            .error { background: #f8d7da; color: #721c24; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>NBA Bulk Gameline Dump</h1>
+            <p>Paste JSON or upload a file containing an array of gamelines.</p>
+            <p>JSON format:</p>
+            <pre>{
+  "source": "my_upload",
+  "gamelines": [
+    {
+      "home": "LAL",
+      "away": "BOS",
+      "game_day": "2025-04-06",
+      "start_time": "19:30",
+      "home_ml": -150,
+      "away_ml": 130,
+      "home_spread": -5.5,
+      "away_spread": 5.5,
+      "home_spread_odds": -110,
+      "away_spread_odds": -110,
+      "over_under": 225.5,
+      "over_odds": -110,
+      "under_odds": -110
+    }
+  ]
+}</pre>
+            
+            <form id="dumpForm">
+                <label for="source">Source name:</label>
+                <input type="text" id="source" name="source" placeholder="e.g., my_bulk_upload" required><br><br>
+                
+                <label for="jsonInput">JSON Input (paste here):</label>
+                <textarea id="jsonInput" placeholder='{"gamelines": [...]}'></textarea>
+                
+                <p>OR upload a JSON file:</p>
+                <input type="file" id="fileInput" accept=".json"><br><br>
+                
+                <button type="submit">Submit Bulk Dump</button>
+            </form>
+            <div id="result"></div>
+        </div>
+        <script>
+            document.getElementById('dumpForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const source = document.getElementById('source').value;
+                let jsonText = document.getElementById('jsonInput').value;
+                const file = document.getElementById('fileInput').files[0];
+                
+                if (!source) {
+                    alert("Source name is required");
+                    return;
+                }
+                
+                let payload = null;
+                if (file) {
+                    const fileText = await file.text();
+                    try {
+                        payload = JSON.parse(fileText);
+                    } catch(err) {
+                        document.getElementById('result').innerHTML = '<div class="status error">Invalid JSON in file</div>';
+                        return;
+                    }
+                } else if (jsonText.trim()) {
+                    try {
+                        payload = JSON.parse(jsonText);
+                    } catch(err) {
+                        document.getElementById('result').innerHTML = '<div class="status error">Invalid JSON in textarea</div>';
+                        return;
+                    }
+                } else {
+                    document.getElementById('result').innerHTML = '<div class="status error">Please provide JSON via textarea or file</div>';
+                    return;
+                }
+                
+                // Ensure payload has a "gamelines" array
+                if (!payload.gamelines || !Array.isArray(payload.gamelines)) {
+                    document.getElementById('result').innerHTML = '<div class="status error">JSON must contain a "gamelines" array</div>';
+                    return;
+                }
+                
+                // Add source to payload
+                payload.source = source;
+                
+                try {
+                    const response = await fetch('/nba/gamelines/dump', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    if (response.ok) {
+                        document.getElementById('result').innerHTML = `<div class="status success">${result.message}<br>Total gamelines: ${result.total_gamelines}</div>`;
+                        document.getElementById('jsonInput').value = '';
+                        document.getElementById('fileInput').value = '';
+                    } else {
+                        document.getElementById('result').innerHTML = `<div class="status error">Error: ${result.detail || 'Unknown error'}</div>`;
+                    }
+                } catch (err) {
+                    document.getElementById('result').innerHTML = `<div class="status error">Network error: ${err.message}</div>`;
+                }
+            };
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+@app.post("/nba/gamelines/dump/file")
+async def dump_gamelines_file(
+    source: str = Form(...),
+    file: UploadFile = File(...)
+):
+    """Alternative endpoint: upload a JSON file directly"""
+    try:
+        contents = await file.read()
+        payload = json.loads(contents)
+        if not isinstance(payload, dict) or "gamelines" not in payload:
+            raise HTTPException(status_code=400, detail="JSON must contain 'gamelines' array")
+        # Reuse the same logic
+        added_count = 0
+        for game in payload["gamelines"]:
+            game_dict = game
+            game_dict['source'] = source
+            nba_game_lines.append(game_dict)
+            added_count += 1
+        return {
+            "status": "success",
+            "message": f"Added {added_count} gameline(s) from file",
+            "total_gamelines": len(nba_game_lines)
+        }
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON file")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/nba/{player}/")
 def get_player_stats(player: str):
