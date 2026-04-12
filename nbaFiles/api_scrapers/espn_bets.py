@@ -102,7 +102,7 @@ def restructure_gameline_data(raw_data):
 
         # Handle spread logic for NBA
         spread = game.get('spread', 0)
-        if home_moneyline != 'N/A' and away_moneyline != 'N/A':
+        if home_moneyline != None and away_moneyline != None:
             if home_moneyline < away_moneyline:  # Home team is favorite
                 home_spread = f"-{spread}"
                 away_spread = f"+{spread}"
